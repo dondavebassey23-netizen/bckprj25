@@ -76,7 +76,7 @@ const authSchema = new mongoose.Schema({
             "Backend Development",
             "Fullstack Development",
             "Data Analytics",
-            "Cloud computing",
+            "Cloud Computing",
             "Cyber Security"
         ],
         required:[ true, "Track is required"]
