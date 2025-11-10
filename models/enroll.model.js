@@ -30,14 +30,14 @@ const enrollSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        minLength: [2, "Name must be at least 2 characters"],
+        minLength: [3, "Name must be at least 3 characters"],
     },
 
     Lastname:{
         type: String,
         required: true,
         trim: true,
-        minLength: [2, "Name must be at least 2 characters"],
+        minLength: [3, "Name must be at least 3 characters"],
     },
     email:{
         type: String,

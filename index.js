@@ -7,6 +7,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import {enrollRouter} from "./routes/enroll.route.js";
 import attendanceRouter from "./routes/attendance.route.js";
+import cron from "node-cron";
+import {autoMarkabsence} from "./controllers/enroll.controller.js";  
 
 
 dotenv.config();    
@@ -23,12 +25,17 @@ app.use(cors({
 }));
 app.use(express.urlencoded({ extended: true }));
 
-;
+cron.schedule('31 19 * * *', async () => {
+console.log("Testing Auto marking function");
+await autoMarkabsence(null, null);
+})
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", enrollRouter);
 app.use("/api/v1/attendance", attendanceRouter);
     
+
+
 app.listen(PORT, async () => {
     console.log(`Server running`);
     await ConnectDb();
