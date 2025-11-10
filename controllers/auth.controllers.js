@@ -48,15 +48,7 @@ export const Signup = async (req, res, next) => {
         session.endSession();
 
         res.status(201).json({ message: "User created successfully",
-            user: {
-                userId: newUser[0]._id,
-                email: newUser[0].email,
-                name: newUser[0].name,
-                password: newUser[0].password,
-                track: newUser[0].track,
-                token: token
-            }
-
+     
         });
     } catch (error) {
         await session.abortTransaction();
