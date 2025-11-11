@@ -78,7 +78,7 @@ const getWorkingDays =(startDate, EndDate)=>{
 export const markAttendance = async (req, res, next)=>{
     try {
         const {email} = req.body;
-
+        // Validation - Check if email is provided
         if(!email)
             return res.status(400).json({message: "Email is required"})
 
@@ -90,7 +90,7 @@ export const markAttendance = async (req, res, next)=>{
         }
 
         const today = new Date()
-        console.log
+        console.log("Todays Date ", today)
 
         // Check if today is weekend
         if(isWeekend(today)){
