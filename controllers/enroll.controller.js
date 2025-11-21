@@ -58,7 +58,7 @@ const getStartOfDay = (date)=>{
 // Helper function to know end of the day
 const getEndOfDay =(date)=>{
     const end = new Date(date);
-    end.setHours(13,59,99,999);
+    end.setHours(13,59,59,999);
     return end
 }
 
@@ -104,13 +104,24 @@ export const markAttendance = async (req, res, next)=>{
         
         const startOfDay = getStartOfDay(today)
         const endOfDay = getEndOfDay(today)
+
+        if (today<startOfDay) {
+            return res.status(400).json({message: "you cannot mark attendance yet!"})
+        }
+
+        if (today>endOfDay) {
+            return res.status(400).json({message: "you cannot mark attendance for today anymore!"})
+        }
+
         const allreadyMarked = student.attendance.some((record) =>{
             const recordDate = new Date(record.date);
             return recordDate >= startOfDay && recordDate <= endOfDay;
         })
 
         if (allreadyMarked) {
-            return res.status(400).json({message: "Attendance already marked!"})
+            return res.status(400).json({message: "Attendance already marked!"});
+            
+            
         }
 
         // Mark the student present
@@ -119,7 +130,7 @@ export const markAttendance = async (req, res, next)=>{
             status: "present"
         })
 
-        // sace it 
+        // save it 
         await student.save();
 
         return res.status(200).json({message: "Attendance marked Successfully!",
@@ -129,9 +140,6 @@ export const markAttendance = async (req, res, next)=>{
             }
         })
       
-
-
-
     } catch (error) {
         return res.status(500).json({message: "Something went wrong!", error: error.message})
     }
@@ -199,6 +207,7 @@ export const getOverallAttendance = async (req, res, next) => {
 
 
 export const getAllStudentWithAttendance = async (req, res, next) => {
+    
     
 }
 

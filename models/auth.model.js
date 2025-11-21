@@ -80,6 +80,10 @@ const authSchema = new mongoose.Schema({
             "Cyber Security"
         ],
         required:[ true, "Track is required"]
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false,
     }
 },
     {timestamps : true}

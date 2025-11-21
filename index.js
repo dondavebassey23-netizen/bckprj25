@@ -25,7 +25,7 @@ app.use(cors({
 }));
 app.use(express.urlencoded({ extended: true }));
 
-cron.schedule('31 19 * * *', async () => {
+cron.schedule('38 22 * * *', async () => {
 console.log("Testing Auto marking function");
 await autoMarkabsence(null, null);
 })

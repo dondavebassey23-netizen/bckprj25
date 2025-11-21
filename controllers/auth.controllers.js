@@ -3,6 +3,7 @@ import auth from "../models/auth.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import {JWT_EXPIRES_IN, JWT_SECRET} from "../config/env.js";
+import { adminAuth } from "../middlewares/admin.auth.js";
 
 
 export const Signup = async (req, res, next) => {
@@ -108,22 +109,33 @@ export const Signin = async (req, res, next) => {
     try {
         const {email, password} = req.body;
 
+        // Check if any field is missing
         if (!email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
+        //check if user exists
         const user = await auth.findOne({ email });
         if (!user) {
            return res.status(400).json({message: "user not found"}) 
         }
-
+        // validate password Or check if password is correct
         const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if (!isPasswordValid) {
             return res.status(400).json({message: "invalid password"})
         }
 
-        const token = jwt.sign({user: user.id}, JWT_SECRET,{expiresIn: JWT_EXPIRES_IN})
+                // NEW: Check if user is actually an admin
+        if (!user.isAdmin) {
+            return res.status(403).json({ message: "Access denied: Not an admin" });
+        }
+
+
+        // generate jwt token or 
+        const token = jwt.sign({user: user.id, email: user.email, 
+            name: user.name,
+            isAdmin: user.isAdmin}, JWT_SECRET,{expiresIn: JWT_EXPIRES_IN})
 
         res.status(200).json({
             success: true,
@@ -131,9 +143,9 @@ export const Signin = async (req, res, next) => {
             token: token,
             data:{
                 id:user.id,
-                name:user.name,
+                //name:user.name,
                 email:user.email,
-                track:user.track
+                //track:user.track
             }   
         })
 
@@ -142,6 +154,8 @@ export const Signin = async (req, res, next) => {
     }
 
 };
+
+export const adminOnly = [adminAuth];
 
 // import { mongoose } from "mongoose";
 // import { auth } from "../models/auth.model";
