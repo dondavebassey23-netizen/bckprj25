@@ -139,14 +139,13 @@ export const Signin = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: "signin sucessful",
-            token: token,
-            data:{
-                id:user.id,
-                //name:user.name,
-                email:user.email,
-                //track:user.track
-            }   
+            message: "signin sucessful", token
+            // data:{
+            //     id:user.id,
+            //     //name:user.name,
+            //     email:user.email,
+            //     //track:user.track
+            // }   
         })
 
     } catch (error) {
