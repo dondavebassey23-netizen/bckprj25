@@ -267,7 +267,7 @@ export const getOverallAttendance = async (req, res, next) => {
         const best = summarises.reduce(
             (max, student) =>
                 student.attendancePercentage > max.attendancePercentage ? student : max,
-            summarises[0]
+            summarises[0] 
         );
 
         // Find student with the lowest attendance percentage
@@ -298,8 +298,8 @@ export const getOverallAttendance = async (req, res, next) => {
             totalAbsent,
             overallAttendancePercentage: Number(overallAttendancePercentage.toFixed(2)),
             averageAttendance: Number(averageAttendance.toFixed(2)),
-            bestAttendance: best,
-            worstAttendance: worst,
+            bestAttendance: Number(best.attendancePercentage.toFixed(2)),   
+            worstAttendance: Number(worst.attendancePercentage.toFixed(2)),
             summarises
         });
 
