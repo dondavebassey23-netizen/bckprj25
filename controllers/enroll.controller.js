@@ -218,6 +218,10 @@ export const getOverallAttendance = async (req, res, next) => {
             return res.status(404).json({ message: "No students found" });
         }
 
+        const today = new Date();
+        const startOfDay = getStartOfDay(today)
+        const endOfDay = getEndOfDay(today)
+
         // These will store total number of present and absent days for ALL students combined
         let totalPresent = 0;
         let totalAbsent = 0;
@@ -230,12 +234,15 @@ export const getOverallAttendance = async (req, res, next) => {
 
             // Count number of days they were present
             const presentDays = student.attendance.filter(
-                record => record.status === "present"
+                record => record.status === "present" && 
+         record.date >= startOfDay && record.date <= endOfDay
             ).length;
 
             // Count number of days they were absent
             const absentDays = student.attendance.filter(
-                record => record.status === "absent"
+                record => record.status === "absent" && 
+         record.date >= startOfDay && record.date <= endOfDay
+
             ).length;
 
             // Total number of attendance records for this student
