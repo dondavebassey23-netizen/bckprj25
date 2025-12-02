@@ -213,8 +213,10 @@ export const getOverallAttendance = async (req, res, next) => {
         // Fetch all students from the database
         const students = await enroll.find({});
 
+        const allStudents = students.length;
+
         // If there are no students in the DB
-        if (students.length === 0) {
+        if (allStudents === 0) {
             return res.status(404).json({ message: "No students found" });
         }
 
@@ -223,8 +225,9 @@ export const getOverallAttendance = async (req, res, next) => {
         const endOfDay = getEndOfDay(today)
 
         // These will store total number of present and absent days for ALL students combined
-        let totalPresent = 0;
-        let totalAbsent = 0;
+        let totalPresentToday = 0;
+        let totalAbsentToday = 0;
+       
 
         // This array will hold each student's attendance summary
         const summarises = [];
@@ -233,29 +236,35 @@ export const getOverallAttendance = async (req, res, next) => {
         students.forEach((student) => {
 
             // Count number of days they were present
-            const presentDays = student.attendance.filter(
-                record => record.status === "present" && 
-         record.date >= startOfDay && record.date <= endOfDay
-            ).length;
+            const presentDays = student.attendance.some((record) => {
+                const recordDate = new Date(record.date);
+                return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "present";
+            })
+            if(presentDays){
+                totalPresentToday++;
+            }
 
-            // Count number of days they were absent
-            const absentDays = student.attendance.filter(
-                record => record.status === "absent" && 
-         record.date >= startOfDay && record.date <= endOfDay
+            students.forEach((student) => {
+                const absentDays = student.attendance.some((record) => {
+                    const recordDate = new Date(record.date);
+                    return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "absent";
+                })
 
-            ).length;
+                if (absentDays) {
+                    totalAbsentToday++;
+                }
+            });
+
 
             // Total number of attendance records for this student
-            const totalDays = presentDays + absentDays;
+           const absentToday = allStudents - totalPresentToday;
+           const absentPercent = (absentToday / allStudents) * 100;
+           const presentPercent = (totalPresentToday / allStudents) * 100;
+
+            const totalDays = presentDays + absentToday;
 
             // Calculate attendance percentage (avoid division by zero)
-            const percentage = totalDays === 0 
-                ? 0 
-                : ((presentDays / totalDays) * 100);
-
-            // Add this student's counts to the general totals
-            totalPresent += presentDays;
-            totalAbsent += absentDays;
+            const percentage = totalDays === 0 ? 0 : ((presentDays / totalDays) * 100);
 
             // Store individual student summary
             summarises.push({
@@ -264,8 +273,8 @@ export const getOverallAttendance = async (req, res, next) => {
                 email: student.email,
                 gender: student.gender,
                 learningTrack: student.learningTrack,
-                presentDays,
-                absentDays,
+                presentDays: presentPercent,
+                absentDays: absentPercent,
                 attendancePercentage: percentage
             });
         });
@@ -290,19 +299,19 @@ export const getOverallAttendance = async (req, res, next) => {
             summarises.length;
 
              // Total number of attendance records for all students
-        const totalDaysAllStudents = totalPresent + totalAbsent;
+        const totalDaysAllStudents = totalPresentToday + totalAbsentToday;
 
         // Overall attendance percentage for all students combined
         const overallAttendancePercentage = totalDaysAllStudents === 0
             ? 0
-            : (totalPresent / totalDaysAllStudents) * 100;
+            : (totalPresentToday / totalDaysAllStudents) * 100;
 
 
         // Send final report to client (admin)
         return res.status(200).json({
             totalStudents: students.length,
-            totalPresent,
-            totalAbsent,
+            totalPresent: totalPresentToday,
+            totalAbsent: totalAbsentToday,
             overallAttendancePercentage: Number(overallAttendancePercentage.toFixed(2)),
             averageAttendance: Number(averageAttendance.toFixed(2)),
             bestAttendance: Number(best.attendancePercentage.toFixed(2)),   
