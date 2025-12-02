@@ -97,18 +97,17 @@ enrollSchema.virtual("fullname").get(function (){
     return `${this.Firstname} ${this.Lastname}`
 });
 
-enrollSchema.methods.getAttendancePercentage = function(){
+enrollSchema.methods.getAttendancePercentage = function () {
 
-    //Step 1: Check if student has any attendance record
-    if (this.attendance.length === 0) return 0; 
+    if (this.attendance.length === 0) return 0;
 
-    //Step 2: Count how many times they were present
-    const presentCount = this.attendance.filter((record) => record.status === "present").length;
+    const presentCount = this.attendance.filter(
+        (record) => record.status === "present"
+    ).length;
 
-    //Step: 3 Calculate the percentage 
-    // Formula: (present days/ total days) * 100
-    return ((presentCount / this.attendance.length) * 100).toFixed(2)
-}
+    return Number(((presentCount / this.attendance.length) * 100).toFixed(2));
+};
+
 
 // Method to get attendance by date range
 // You want to grt attendance for November 2025

@@ -306,13 +306,17 @@ export const getOverallAttendance = async (req, res, next) => {
             ? 0
             : (totalPresentToday / totalDaysAllStudents) * 100;
 
+        const AttendancePercentage =
+    students.reduce((sum, student) => sum + student.getAttendancePercentage(), 0) /
+    students.length;
+
 
         // Send final report to client (admin)
         return res.status(200).json({
             totalStudents: students.length,
             totalPresent: totalPresentToday,
             totalAbsent: totalAbsentToday,
-            overallAttendancePercentage: Number(overallAttendancePercentage.toFixed(2)),
+           overallAttendancePercentage: Number(AttendancePercentage.toFixed(2)),
             averageAttendance: Number(averageAttendance.toFixed(2)),
             bestAttendance: Number(best.attendancePercentage.toFixed(2)),   
             worstAttendance: Number(worst.attendancePercentage.toFixed(2)),
