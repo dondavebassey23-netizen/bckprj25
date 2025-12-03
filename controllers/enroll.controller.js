@@ -208,123 +208,199 @@ export const autoMarkabsence = async (req, res, next)=>{
 }
 
 //  Controller to calculate overall attendance for all students
+// export const getOverallAttendance = async (req, res, next) => {
+//     try {
+//         // Fetch all students from the database
+//         const students = await enroll.find({});
+
+//         const allStudents = students.length;
+
+//         // If there are no students in the DB
+//         if (allStudents === 0) {
+//             return res.status(404).json({ message: "No students found" });
+//         }
+
+//         const today = new Date();
+//         const startOfDay = getStartOfDay(today)
+//         const endOfDay = getEndOfDay(today)
+
+//         // These will store total number of present and absent days for ALL students combined
+//         let totalPresentToday = 0;
+//         let totalAbsentToday = 0;
+       
+
+//         // This array will hold each student's attendance summary
+//         const summarises = [];
+
+//         // Loop through each student to calculate their attendance data
+//         students.forEach((student) => {
+
+//             // Count number of days they were present
+//             const presentDays = student.attendance.some((record) => {
+//                 const recordDate = new Date(record.date);
+//                 return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "present";
+//             })
+//             if(presentDays){
+//                 totalPresentToday++;
+//             }
+
+//             students.forEach((student) => {
+//                 const absentDays = student.attendance.some((record) => {
+//                     const recordDate = new Date(record.date);
+//                     return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "absent";
+//                 })
+
+//                 if (absentDays) {
+//                     totalAbsentToday++;
+//                 }
+//             });
+
+
+//             // Total number of attendance records for this student
+//            const absentToday = allStudents - totalPresentToday;
+//            const absentPercent = (absentToday / allStudents) * 100;
+//            const presentPercent = (totalPresentToday / allStudents) * 100;
+
+//             const totalDays = presentDays + absentToday;
+
+           
+//             // Store individual student summary
+//             summarises.push({
+//                 studentId: student._id,
+//                 name: `${student.Firstname} ${student.Lastname}`,
+//                 email: student.email,
+//                 gender: student.gender,
+//                 learningTrack: student.learningTrack,
+//                 presentDays: presentPercent,
+//                 absentDays: absentPercent,
+//                 attendancePercentage: percentage
+//             });
+//         });
+
+//         // Find student with the highest attendance percentage
+//         const best = summarises.reduce(
+//             (max, student) =>
+//                 student.attendancePercentage > max.attendancePercentage ? student : max,
+//             summarises[0] 
+//         );
+
+//         // Find student with the lowest attendance percentage
+//         const worst = summarises.reduce(
+//             (min, student) =>
+//                 student.attendancePercentage < min.attendancePercentage ? student : min,
+//             summarises[0]
+//         );
+
+//         // Calculate average attendance of all students
+//         const averageAttendance =
+//             summarises.reduce((sum, student) => sum + student.attendancePercentage, 0) /
+//             summarises.length;
+
+//              // Total number of attendance records for all students
+//         const totalDaysAllStudents = totalPresentToday + totalAbsentToday;
+
+//         // Overall attendance percentage for all students combined
+//         const overallAttendancePercentage = totalDaysAllStudents === 0
+//             ? 0
+//             : (totalPresentToday / totalDaysAllStudents) * 100;
+
+//         const AttendancePercentage =
+//     students.reduce((sum, student) => sum + student.getAttendancePercentage(), 0) /
+//     students.length;
+
+
+//         // Send final report to client (admin)
+//         return res.status(200).json({
+//             totalStudents: students.length,
+//             totalPresent: totalPresentToday,
+//             totalAbsent: totalAbsentToday,
+//            overallAttendancePercentage: Number(AttendancePercentage.toFixed(2)),
+//             averageAttendance: Number(averageAttendance.toFixed(2)),
+//             bestAttendance: Number(best.attendancePercentage.toFixed(2)),   
+//             worstAttendance: Number(worst.attendancePercentage.toFixed(2)),
+//             summarises
+//         });
+
+//     } catch (error) {
+//         // Handle unexpected server errors
+//         return res.status(500).json({
+//             message: "Something went wrong!",
+//             error: error.message
+//         });
+//     }
+// };
+
 export const getOverallAttendance = async (req, res, next) => {
     try {
         // Fetch all students from the database
         const students = await enroll.find({});
+        const totalStudents = students.length;
 
-        const allStudents = students.length;
-
-        // If there are no students in the DB
-        if (allStudents === 0) {
+        if (totalStudents === 0) {
             return res.status(404).json({ message: "No students found" });
         }
 
         const today = new Date();
-        const startOfDay = getStartOfDay(today)
-        const endOfDay = getEndOfDay(today)
+        const startOfDay = getStartOfDay(today);
+        const endOfDay = getEndOfDay(today);
 
-        // These will store total number of present and absent days for ALL students combined
         let totalPresentToday = 0;
         let totalAbsentToday = 0;
-       
 
-        // This array will hold each student's attendance summary
         const summarises = [];
 
-        // Loop through each student to calculate their attendance data
-        students.forEach((student) => {
-
-            // Count number of days they were present
-            const presentDays = student.attendance.some((record) => {
+        // Loop through each student to calculate today's attendance and overall percentage
+        students.forEach(student => {
+            const isPresentToday = student.attendance.some(record => {
                 const recordDate = new Date(record.date);
                 return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "present";
-            })
-            if(presentDays){
-                totalPresentToday++;
-            }
-
-            students.forEach((student) => {
-                const absentDays = student.attendance.some((record) => {
-                    const recordDate = new Date(record.date);
-                    return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "absent";
-                })
-
-                if (absentDays) {
-                    totalAbsentToday++;
-                }
             });
 
+            const isAbsentToday = student.attendance.some(record => {
+                const recordDate = new Date(record.date);
+                return recordDate >= startOfDay && recordDate <= endOfDay && record.status === "absent";
+            });
 
-            // Total number of attendance records for this student
-           const absentToday = allStudents - totalPresentToday;
-           const absentPercent = (absentToday / allStudents) * 100;
-           const presentPercent = (totalPresentToday / allStudents) * 100;
+            if (isPresentToday) totalPresentToday++;
+            if (isAbsentToday) totalAbsentToday++;
 
-            const totalDays = presentDays + absentToday;
+            // Student's overall attendance percentage from schema method
+            const attendancePercentage = student.getAttendancePercentage();
 
-            // Calculate attendance percentage (avoid division by zero)
-            const percentage = totalDays === 0 ? 0 : ((presentDays / totalDays) * 100);
-
-            // Store individual student summary
             summarises.push({
                 studentId: student._id,
                 name: `${student.Firstname} ${student.Lastname}`,
                 email: student.email,
                 gender: student.gender,
                 learningTrack: student.learningTrack,
-                presentDays: presentPercent,
-                absentDays: absentPercent,
-                attendancePercentage: percentage
+                presentToday: isPresentToday ? 1 : 0,
+                absentToday: isAbsentToday ? 1 : 0,
+                attendancePercentage
             });
         });
 
-        // Find student with the highest attendance percentage
-        const best = summarises.reduce(
-            (max, student) =>
-                student.attendancePercentage > max.attendancePercentage ? student : max,
-            summarises[0] 
-        );
+        // Find student with highest and lowest attendance
+        const best = summarises.reduce((max, s) => (s.attendancePercentage > max.attendancePercentage ? s : max), summarises[0]);
+        const worst = summarises.reduce((min, s) => (s.attendancePercentage < min.attendancePercentage ? s : min), summarises[0]);
 
-        // Find student with the lowest attendance percentage
-        const worst = summarises.reduce(
-            (min, student) =>
-                student.attendancePercentage < min.attendancePercentage ? student : min,
-            summarises[0]
-        );
+        // Average attendance
+        const averageAttendance = summarises.reduce((sum, s) => sum + s.attendancePercentage, 0) / totalStudents;
 
-        // Calculate average attendance of all students
-        const averageAttendance =
-            summarises.reduce((sum, student) => sum + student.attendancePercentage, 0) /
-            summarises.length;
+        // Overall attendance percentage for all students
+        const overallAttendancePercentage = summarises.reduce((sum, s) => sum + s.attendancePercentage, 0) / totalStudents;
 
-             // Total number of attendance records for all students
-        const totalDaysAllStudents = totalPresentToday + totalAbsentToday;
-
-        // Overall attendance percentage for all students combined
-        const overallAttendancePercentage = totalDaysAllStudents === 0
-            ? 0
-            : (totalPresentToday / totalDaysAllStudents) * 100;
-
-        const AttendancePercentage =
-    students.reduce((sum, student) => sum + student.getAttendancePercentage(), 0) /
-    students.length;
-
-
-        // Send final report to client (admin)
         return res.status(200).json({
-            totalStudents: students.length,
-            totalPresent: totalPresentToday,
-            totalAbsent: totalAbsentToday,
-           overallAttendancePercentage: Number(AttendancePercentage.toFixed(2)),
+            totalStudents,
+            totalPresentToday,
+            totalAbsentToday,
+            overallAttendancePercentage: Number(overallAttendancePercentage.toFixed(2)),
             averageAttendance: Number(averageAttendance.toFixed(2)),
-            bestAttendance: Number(best.attendancePercentage.toFixed(2)),   
+            bestAttendance: Number(best.attendancePercentage.toFixed(2)),
             worstAttendance: Number(worst.attendancePercentage.toFixed(2)),
             summarises
         });
 
     } catch (error) {
-        // Handle unexpected server errors
         return res.status(500).json({
             message: "Something went wrong!",
             error: error.message

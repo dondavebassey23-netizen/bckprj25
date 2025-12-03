@@ -154,6 +154,18 @@ export const Signin = async (req, res, next) => {
 
 };
 
+export const logout = async (req, res, next) => {
+    try {
+        res.cookie("token", "", {
+            httpOnly: true,
+            expires: new Date(0),
+        });
+        res.status(200).json({ message: "You have successfully logged out!" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const adminOnly = [adminAuth];
 
 // import { mongoose } from "mongoose";
