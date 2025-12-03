@@ -18,7 +18,7 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors({
-    origin: ["http://localhost:5000", "http://localhost:3000", "https://ekiti-ict-hub.vercel.app"],
+    origin: ["http://localhost:5000", "http://localhost:3000", "https://ekiti-ict-hub.vercel.app", "https://wakocodeattendance.vercel.app"],
 
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
