@@ -11,6 +11,6 @@ authRouter.post("/signin", Signin);
 authRouter.get("/dashboard", adminAuth, adminOnly, (req, res) => {
     res.status(200).json({ message: `Welcome to your admin dashboard ${req.auth.name}!` });
 });
-authRouter.post("/logout", logout);
+authRouter.get("/logout", logout);
 
 export default authRouter;

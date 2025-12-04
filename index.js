@@ -34,6 +34,7 @@ await autoMarkabsence(null, null);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", enrollRouter);
 app.use("/api/v1/attendance", attendanceRouter);
+app.use("/api/v1", authRouter);
     
 
 

@@ -43,6 +43,12 @@ export const Signup = async (req, res, next) => {
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
+  res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "development",
+                maxAge: 60* 60 * 1000, // 1 hour
+            });
+
 
             // commit the transaction to mongoose
         await session.commitTransaction();
@@ -131,11 +137,19 @@ export const Signin = async (req, res, next) => {
             return res.status(403).json({ message: "Access denied: Not an admin" });
         }
 
+    
+
 
         // generate jwt token or 
         const token = jwt.sign({user: user.id, email: user.email, 
             name: user.name,
             isAdmin: user.isAdmin}, JWT_SECRET,{expiresIn: JWT_EXPIRES_IN})
+
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "development",
+                maxAge: 60* 60 * 1000, // 1 hour
+            })
 
         res.status(200).json({
             success: true,
@@ -156,9 +170,10 @@ export const Signin = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        res.cookie("token", "", {
+        res.clearCookie("token", "", {
             httpOnly: true,
-            expires: new Date(0),
+            secure: process.env.NODE_ENV === "development",
+            maxAge: 0, // Clear the cookie by setting maxAge to 0
         });
         res.status(200).json({ message: "You have successfully logged out!" });
     } catch (error) {
