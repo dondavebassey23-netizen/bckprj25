@@ -79,75 +79,75 @@ const getWorkingDays =(startDate, EndDate)=>{
 
 
 // Controller to mark attendance for a student
-export const markAttendance = async (req, res, next)=>{
-    try {
-        const {email} = req.body;
-        // Validation - Check if email is provided
-        if(!email)
-            return res.status(400).json({message: "Email is required"})
+// export const markAttendance = async (req, res, next)=>{
+//     try {
+//         const {email} = req.body;
+//         // Validation - Check if email is provided
+//         if(!email)
+//             return res.status(400).json({message: "Email is required"})
 
-        // Validation - Check if student is enrolled
-        const student = await enroll.findOne({email});
+//         // Validation - Check if student is enrolled
+//         const student = await enroll.findOne({email});
 
-        if (!student) {
-           return res.status(400).json({message: "Student not found!"}) 
-        }
+//         if (!student) {
+//            return res.status(400).json({message: "Student not found!"}) 
+//         }
 
-        const today = new Date()
-        console.log("Todays Date ", today)
+//         const today = new Date()
+//         console.log("Todays Date ", today)
 
-        // Check if today is weekend
-        if(isWeekend(today)){
-            return res.status(400).json({message: "Attendance cannot be marked on weekend!"})
-        }
+//         // Check if today is weekend
+//         if(isWeekend(today)){
+//             return res.status(400).json({message: "Attendance cannot be marked on weekend!"})
+//         }
 
-        // Prevent students from marking attendance twice
-        // This means startOfDay is 0.00 midnight
-        // This meeans endOfDay is 11:59pm today
-        // So we are creating a time  range that represent today only
+//         // Prevent students from marking attendance twice
+//         // This means startOfDay is 0.00 midnight
+//         // This meeans endOfDay is 11:59pm today
+//         // So we are creating a time  range that represent today only
         
-        const startOfDay = getStartOfDay(today)
-        const endOfDay = getEndOfDay(today)
+//         const startOfDay = getStartOfDay(today)
+//         const endOfDay = getEndOfDay(today)
 
-        if (today<startOfDay) {
-            return res.status(400).json({message: "you cannot mark attendance yet!"})
-        }
+//         if (today<startOfDay) {
+//             return res.status(400).json({message: "you cannot mark attendance yet!"})
+//         }
 
-        if (today>endOfDay) {
-            return res.status(400).json({message: "you cannot mark attendance for today anymore!"})
-        }
+//         if (today>endOfDay) {
+//             return res.status(400).json({message: "you cannot mark attendance for today anymore!"})
+//         }
 
-        const allreadyMarked = student.attendance.some((record) =>{
-            const recordDate = new Date(record.date);
-            return recordDate >= startOfDay && recordDate <= endOfDay;
-        })
+//         const allreadyMarked = student.attendance.some((record) =>{
+//             const recordDate = new Date(record.date);
+//             return recordDate >= startOfDay && recordDate <= endOfDay;
+//         })
 
-        if (allreadyMarked) {
-            return res.status(400).json({message: "Attendance already marked!"});
+//         if (allreadyMarked) {
+//             return res.status(400).json({message: "Attendance already marked!"});
             
             
-        }
+//         }
 
-        // Mark the student present
-        student.attendance.push({
-            date: today,
-            status: "present"
-        })
+//         // Mark the student present
+//         student.attendance.push({
+//             date: today,
+//             status: "present"
+//         })
 
-        // save it 
-        await student.save();
+//         // save it 
+//         await student.save();
 
-        return res.status(200).json({message: "Attendance marked Successfully!",
-            attendance: {
-                date: today,
-                status: "present"
-            }
-        })
+//         return res.status(200).json({message: "Attendance marked Successfully!",
+//             attendance: {
+//                 date: today,
+//                 status: "present"
+//             }
+//         })
       
-    } catch (error) {
-        return res.status(500).json({message: "Something went wrong!", error: error.message})
-    }
-}
+//     } catch (error) {
+//         return res.status(500).json({message: "Something went wrong!", error: error.message})
+//     }
+// }
 
 
 // Controller for auto-marking absence for students who did not mark attendance by 2pm
@@ -844,3 +844,82 @@ export const getAttendanceByName = async (req, res) => {
     }
 
 }
+
+export const markAttendance = async (req, res, next)=>{
+    try {
+        //1 Retrieve the Security Headers(injected by Electron)
+        const deviceStatus = req.headers['x-device-status'];
+        const studentMac = req.headers['x-student-mac'];
+
+        //2. security logic :Block if not verified
+        if (deviceStatus !== 'verified') {
+            let message = "⛔Access denied.";
+
+        if (!deviceStatus) {
+          // Header is missing -> User is likely on Chrome/another browser
+          message = "You are using a web browser. Please open the school's desktop app to mark attendance.";
+        } else if (deviceStatus === 'denied_ip') {
+            message = ` This device (${studentMac}) is not registered. Please contact the administrator.`;
+        }else if (deviceStatus === 'error message') {
+            message = " Network error: Could not verify device identity. Please check your connection and try again.";
+        }
+
+        // Return 403 forbidden ( This triggers the specific alert on your front-end)
+        return res.status(403).json({ success: false, message: message });
+    }
+        
+        console.log(`Authorized Request from MAC: ${studentMac}`);
+
+        const {email} = req.body;
+        // Validation - Check if email is provided
+        if(!email)
+            return res.status(400).json({message: "Provide a valid email"})
+    
+
+    const student = await enroll.findOne({email});
+
+    if (!student) {
+       return res.status(400).json({message: "Student not enrolled!"}) 
+    }
+    const today = new Date()
+
+    if (isWeekendWeekend(today)) {
+        return res.status(400).json({message: "Attendance cannot be marked on weekend!"})
+    }
+    
+    const startOfDay = getStartOfDay(today)
+    const endOfDay = getEndOfDay(today)
+
+    if (today<startOfDay) {
+        return res.status(400).json({message: "you cannot mark attendance yet!"}) 
+    }
+
+    if (today>endOfDay) {
+        return res.status(400).json({message: "you cannot mark attendance for today anymore!"})
+    }
+
+    const allreadyMarked = student.attendance.some((record) =>{
+        const recordDate = new Date(record.date);
+        return recordDate >= startOfDay && recordDate <= endOfDay;
+    });
+    
+    if (allreadyMarked) {
+        return res.status(400).json({message: "Attendance already marked today!"});
+    }
+
+    // saving the MAC address to the database record too!
+
+    student.attendance.push({
+        date: today,
+        status: "present"
+    });
+    await student.save();
+
+    return res.status(200).json({message: "Attendance marked Successfully!"});             
+
+
+    } catch (error) {
+        console.error("Attendance error:", error);
+        return res.status(500).json({message: "Something went wrong!", error: error.message});  
+    }
+};
